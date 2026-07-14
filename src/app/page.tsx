@@ -1,47 +1,48 @@
 import { PRODUCTS } from "@/data/products";
 import { ProductCard } from "@/components/product-card";
+import { BookingFilter } from "@/components/booking-filter";
+import { FeatureGrid } from "@/components/feature-grid";
 
 // ============================================================================
-// Trang chủ: Hero bất đối xứng (split) + lưới sản phẩm.
-// Hero chiếm vừa viewport, headline ≤ 2 dòng, CTA hiển thị không cần scroll.
+// Trang chủ (Redesign: retro-warm editorial).
+// Hero: headline serif khổng lồ, căn giữa, từ khóa brick-red.
+// Filter: form minimalist tích hợp mượt.
+// Grid: 3 Room Categories với badge + icon + serif subhead.
 // ============================================================================
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-16">
-      {/* ----- HERO (Asymmetric Split) ----- */}
-      <section className="grid min-h-[78dvh] grid-cols-1 items-center gap-8 lg:grid-cols-2">
-        <div className="flex flex-col gap-5">
-          <span className="w-fit rounded-full bg-[var(--color-accent-soft)] px-3 py-1 text-xs font-medium text-[var(--color-accent-strong)]">
-            Du lịch Việt Nam
-          </span>
-          <h1 className="text-4xl font-semibold leading-tight tracking-tight text-[var(--text)] md:text-5xl lg:text-6xl">
-            Đặt tour, khách sạn và vé chỉ trong vài chạm
-          </h1>
-          <p className="max-w-[52ch] text-base text-[var(--text-muted)]">
-            Hàng nghìn trải nghiệm trên khắp Việt Nam. Thanh toán an toàn qua VNPAY, xác nhận tức thì.
-          </p>
-          <div className="flex gap-3">
-            <a
-              href="#products"
-              className="rounded-full bg-[var(--color-accent)] px-6 py-3 text-sm font-medium text-white transition active:scale-95 hover:bg-[var(--color-accent-strong)]"
-            >
-              Khám phá ngay
-            </a>
-          </div>
-        </div>
-        <div className="relative h-[40dvh] overflow-hidden rounded-[var(--radius-card)] lg:h-[60dvh]">
-          <img
-            src="https://picsum.photos/seed/vietnam-travel-hero/1200/900"
-            alt="Bãi biển Việt Nam"
-            className="h-full w-full object-cover"
-          />
-        </div>
+    <div className="flex flex-col gap-20">
+      {/* ----- HERO ----- */}
+      <section className="flex flex-col items-center gap-6 pt-10 text-center">
+        <span className="badge-warm px-4 py-1 text-xs font-medium uppercase tracking-[0.18em]">
+          MaiHome Homestay
+        </span>
+        <h1 className="font-serif-display max-w-3xl text-4xl leading-[1.05] tracking-tight text-[var(--color-ink)] md:text-6xl">
+          A cozy shelter for the{" "}
+          <span className="italic text-[var(--color-brick)]">wandering</span> souls.
+        </h1>
+        <p className="max-w-[52ch] text-base leading-relaxed text-[var(--color-ink-muted)]">
+          Những căn phòng thủ công bên rừng thông và bờ biển, nơi bạn tìm lại
+          nhịp thở chậm rãi. Cà phê sáng, ánh đèn ấm, và tiếng sóng mỗi tối.
+        </p>
+        <a
+          href="#rooms"
+          className="mt-2 rounded-full bg-[var(--color-brick)] px-7 py-3.5 text-sm font-medium text-white transition-transform duration-200 hover:bg-[#86301f] active:scale-95"
+        >
+          Explore rooms & book now
+        </a>
       </section>
 
-      {/* ----- GRID SẢN PHẨM ----- */}
-      <section id="products" className="flex flex-col gap-6">
-        <h2 className="text-2xl font-semibold tracking-tight text-[var(--text)]">
+      {/* ----- FILTER (minimalist) ----- */}
+      <BookingFilter />
+
+      {/* ----- ROOM CATEGORIES GRID ----- */}
+      <FeatureGrid />
+
+      {/* ----- PRODUCTS (giữ nguyên booking engine) ----- */}
+      <section id="rooms" className="flex flex-col gap-6">
+        <h2 className="font-serif-display text-3xl tracking-tight text-[var(--color-ink)]">
           Lựa chọn phổ biến
         </h2>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
