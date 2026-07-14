@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Prisma generated client (regenerated via prisma generate)
+# Keep schema + seed, ignore generated client in node_modules (already ignored)
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / Editor
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts

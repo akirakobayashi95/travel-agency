@@ -1,0 +1,56 @@
+/* Tailwind v4 entry. Dùng @import "tailwindcss" thay vì @tailwind directives cũ. */
+@import "tailwindcss";
+
+/* ============================================================================
+   Design tokens - Travel Marketplace
+   Accent duy nhất: ocean-teal. Radius nhất quán: 14px (cards) / full (buttons).
+   Theme: light mặc định, hỗ trợ prefers-color-scheme dark.
+   ============================================================================ */
+@theme {
+  --color-accent: #0d9488; /* teal-600 */
+  --color-accent-strong: #0f766e; /* teal-700 */
+  --color-accent-soft: #ccfbf1; /* teal-100 */
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --font-sans: var(--font-inter), "Inter Tight", ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  --bg: #f8fafc; /* slate-50 */
+  --surface: #ffffff;
+  --text: #0f172a; /* slate-900 */
+  --text-muted: #475569; /* slate-600 */
+  --border: #e2e8f0; /* slate-200 */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1120;
+    --surface: #111827;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #1f2937;
+  }
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+/* Tất cả card dùng cùng một radius system. */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+/* Reduced motion: tắt transition mặc định. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,115 @@
+// ============================================================================
+// schema.prisma - Netlify Database (PostgreSQL) cho Travel Booking Marketplace
+// ----------------------------------------------------------------------------
+// Thiết kế đảm bảo chống overbooking bằng row-level locking (SELECT ... FOR UPDATE)
+// thông qua Prisma interactive transaction + raw query trong Booking API.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// Enum loại sản phẩm du lịch
+// ----------------------------------------------------------------------------
+enum ProductType {
+  TOUR
+  HOTEL
+  TICKET
+}
+
+// ----------------------------------------------------------------------------
+// Enum trạng thái thanh toán
+// ----------------------------------------------------------------------------
+enum PaymentStatus {
+  UNPAID
+  PAID
+  CANCELLED
+}
+
+// ----------------------------------------------------------------------------
+// Product: sản phẩm / dịch vụ du lịch (Tour, Khách sạn, Vé)
+// ----------------------------------------------------------------------------
+model Product {
+  id         String       @id @default(cuid())
+  type       ProductType
+  title      String
+  priceAdult Int // Giá người lớn (VND)
+  priceChild Int // Giá trẻ em (VND)
+  priceInfant Int // Giá em bé (VND)
+
+  // Quan hệ 1-nhiều tới Inventory (tồn kho theo ngày)
+  inventories Inventory[]
+
+  // Quan hệ ngược từ BookingItem (mỗi sản phẩm có thể nằm trong nhiều booking)
+  bookingItems BookingItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+}
+
+// ----------------------------------------------------------------------------
+// Inventory: tồn kho theo ngày cho mỗi Product
+// totalSlots  - tổng slot của ngày
+// bookedSlots - số slot đã đặt (dùng so sánh để tránh overbooking)
+// ----------------------------------------------------------------------------
+model Inventory {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  date       DateTime // Ngày áp dụng (date-only, múi giờ UTC)
+  totalSlots Int
+  bookedSlots Int      @default(0)
+
+  bookings   BookingItem[]
+
+  @@unique([productId, date]) // Mỗi ngày mỗi sản phẩm chỉ có 1 dòng tồn kho
+  @@index([productId])
+}
+
+// ----------------------------------------------------------------------------
+// Booking: đơn đặt chỗ của user
+// ----------------------------------------------------------------------------
+model Booking {
+  id            String        @id @default(cuid())
+  userId        String
+  totalAmount   Int // Tổng tiền (VND) đã tính tại thời điểm tạo
+  paymentStatus PaymentStatus @default(UNPAID)
+  vnpayTxnRef   String        @unique // Mã giao dịch duy nhất gửi sang VNPAY
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Quan hệ 1-nhiều tới BookingItem
+  items BookingItem[]
+
+  @@index([userId])
+  @@index([vnpayTxnRef])
+}
+
+// ----------------------------------------------------------------------------
+// BookingItem: chi tiết từng dòng trong Booking (sản phẩm + ngày + số lượng)
+// ----------------------------------------------------------------------------
+model BookingItem {
+  id         String   @id @default(cuid())
+  bookingId  String
+  booking    Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inventoryId String
+  inventory  Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  quantity   Int // Tổng số lượng khách (adult + child + infant)
+  adults     Int      @default(0)
+  children   Int      @default(0)
+  infants    Int      @default(0)
+  bookingDate DateTime // Ngày đi / ngày sử dụng
+
+  @@index([bookingId])
+  @@index([inventoryId])
+}

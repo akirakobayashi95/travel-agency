@@ -1,0 +1,11 @@
+# Cấu hình Netlify cho Next.js (App Router) deployment.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Plugin chính thức giúp chuyển Next.js sang Netlify Functions / Edge.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Biến môi trường được cung cấp qua Netlify UI (Site settings > Environment variables).
+# Không hardcode secret ở đây.
