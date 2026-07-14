@@ -4,14 +4,27 @@
 // Cart page - Giỏ hàng thống nhất (Unified Shopping Cart).
 // - Hiển thị từng item, cho phép chỉnh số lượng khách real-time.
 // - Tính tổng tiền động (adult/child/infant riêng biệt).
-// - "Thanh toán" -> gọi /api/bookings/create -> /api/payment/vnpay-url -> redirect.
+// - "Proceed to Payment" -> gọi Supabase RPC create_booking_transaction
+//   (chống overbooking bằng SELECT FOR UPDATE trong Postgres function) ->
+//   /api/payment/vnpay-url -> redirect VNPAY.
 // ============================================================================
 
 import { useState } from "react";
 import { useCart, formatVnd } from "@/components/cart-store";
 import { motion, useReducedMotion } from "motion/react";
+import { getBrowserSupabase } from "@/lib/supabase";
 
-const DEMO_USER_ID = "user_demo_001"; // Thực tế lấy từ session/auth.
+const DEMO_USER_ID = "00000000-0000-0000-0000-000000000001"; // UUID demo.
+
+// Sinh mã giao dịch VNPAY unique (dùng ở client).
+function generateTxnRef(): string {
+  const now = new Date()
+    .toISOString()
+    .replace(/[-:TZ.]/g, "")
+    .slice(0, 14);
+  const rand = Math.random().toString(16).slice(2, 8).toUpperCase();
+  return `${now}${rand}`;
+}
 
 export default function CartPage() {
   const reduce = useReducedMotion();
@@ -24,31 +37,38 @@ export default function CartPage() {
     setLoading(true);
     setError(null);
     try {
-      // Bước 1: tạo booking (có row-level lock chống overbooking).
-      const createRes = await fetch("/api/bookings/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: DEMO_USER_ID,
-          items: items.map((i) => ({
-            productId: i.productId,
-            bookingDate: i.bookingDate,
-            adults: i.adults,
-            children: i.children,
-            infants: i.infants,
-          })),
-        }),
-      });
-      const createData = await createRes.json();
-      if (!createRes.ok) {
-        throw new Error(createData.error ?? "Tạo đơn thất bại");
+      // Bước 1: gọi Supabase RPC create_booking_transaction.
+      // RPC thực hiện FOR UPDATE lock + check slot + insert trong 1 transaction.
+      const supabase = getBrowserSupabase();
+      const txnRef = generateTxnRef();
+
+      const rpcItems = items.map((i) => ({
+        product_id: i.productId, // UUID khớp với bảng products
+        quantity: i.adults + i.children + i.infants,
+        booking_date: i.bookingDate,
+      }));
+
+      const { data: bookingId, error: rpcError } = await supabase.rpc(
+        "create_booking_transaction",
+        {
+          p_user_id: DEMO_USER_ID,
+          p_total_amount: total, // integer VND
+          p_vnpay_txn_ref: txnRef,
+          p_items: rpcItems,
+        },
+      );
+
+      if (rpcError || !bookingId) {
+        throw new Error(
+          (rpcError && rpcError.message) || "Tạo đơn thất bại (hết slot?)",
+        );
       }
 
-      // Bước 2: lấy URL thanh toán VNPAY.
+      // Bước 2: lấy URL thanh toán VNPAY từ API route (dùng server key).
       const payRes = await fetch("/api/payment/vnpay-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId: createData.bookingId }),
+        body: JSON.stringify({ bookingId }),
       });
       const payData = await payRes.json();
       if (!payRes.ok) {

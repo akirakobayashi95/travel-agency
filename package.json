@@ -4,15 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "prisma generate",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "5.18.0",
+    "@supabase/supabase-js": "^2.110.5",
     "motion": "^11.11.0",
     "next": "^14.2.35",
     "react": "18.3.1",
@@ -25,17 +22,7 @@
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "postcss": "8.4.40",
-    "prisma": "5.18.0",
     "tailwindcss": "^4.0.0",
-    "tsx": "4.16.2",
     "typescript": "5.5.4"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
-  "allowScripts": {
-    "@prisma/client@5.18.0": true,
-    "prisma@5.18.0": true,
-    "@prisma/engines@5.18.0": true
   }
 }

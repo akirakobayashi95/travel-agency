@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { supabaseServer } from "@/lib/supabase";
 import { buildPaymentUrl, getVnpayConfig } from "@/lib/vnpay";
 
 // ============================================================================
 // POST /api/payment/vnpay-url
 // ----------------------------------------------------------------------------
-// Nhận bookingId, truy vấn Netlify Database, tính secure hash HMAC-SHA512,
+// Nhận bookingId, truy vấn Supabase, tính secure hash HMAC-SHA512,
 // trả về URL redirect thanh toán VNPAY.
 // ============================================================================
 
@@ -22,16 +22,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Thiếu bookingId" }, { status: 400 });
   }
 
-  // Lấy booking từ DB.
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-  });
+  // Lấy booking từ Supabase.
+  const { data: booking, error } = await supabaseServer
+    .from("bookings")
+    .select("id, total_amount, vnpay_txn_ref, payment_status")
+    .eq("id", bookingId)
+    .single();
 
-  if (!booking) {
+  if (error || !booking) {
     return NextResponse.json({ error: "Booking không tồn tại" }, { status: 404 });
   }
 
-  if (booking.paymentStatus === "PAID") {
+  if (booking.payment_status === "paid") {
     return NextResponse.json(
       { error: "Booking đã được thanh toán" },
       { status: 409 },
@@ -46,17 +48,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Lấy IP khách (ưu tiên x-forwarded-for từ Netlify).
+  // IP khách (ưu tiên x-forwarded-for từ Netlify).
   const forwarded = req.headers.get("x-forwarded-for");
   const ipAddr =
     forwarded?.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip") ||
     "127.0.0.1";
 
-  const orderInfo = `Thanh toan booking ${booking.vnpayTxnRef}`;
+  const orderInfo = `Thanh toan booking ${booking.vnpay_txn_ref}`;
+  // total_amount lưu dạng integer VND (không có số thập phân).
+  const amount = Number(booking.total_amount);
   const paymentUrl = buildPaymentUrl({
-    txnRef: booking.vnpayTxnRef,
-    amount: booking.totalAmount,
+    txnRef: booking.vnpay_txn_ref,
+    amount,
     orderInfo,
     ipAddr,
     config,
@@ -64,7 +68,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     paymentUrl,
-    vnpayTxnRef: booking.vnpayTxnRef,
-    amount: booking.totalAmount,
+    vnpayTxnRef: booking.vnpay_txn_ref,
+    amount,
   });
 }
