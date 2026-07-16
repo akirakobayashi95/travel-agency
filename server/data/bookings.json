@@ -1,0 +1,46 @@
+{
+  "bookings": [
+    {
+      "id": "e1a33147-1cd2-4ca6-9a01-61d116ea077d",
+      "code": "BK202608010001",
+      "status": "pending",
+      "contact": {
+        "fullName": "Nguyen Van A",
+        "phone": "0901234567",
+        "email": "a@example.com",
+        "address": "Phu Yen",
+        "note": ""
+      },
+      "packageId": "tour-001",
+      "packageTitle": "Tour Phu Yen",
+      "departureDate": "2026-08-01",
+      "pickupPoint": "Van phong",
+      "travelers": {
+        "adults": 2,
+        "children": 1,
+        "infants": 0
+      },
+      "pricing": {
+        "adultPrice": 2000000,
+        "childPrice": 1200000,
+        "infantPrice": 0,
+        "adultTotal": 4000000,
+        "childTotal": 1200000,
+        "infantTotal": 0,
+        "surcharge": 0,
+        "discount": 0,
+        "total": 5200000
+      },
+      "payment": {
+        "method": "deposit",
+        "amount": 1560000,
+        "paidAt": null
+      },
+      "createdAt": "2026-07-16T02:32:33.186Z",
+      "updatedAt": "2026-07-16T02:32:33.186Z"
+    }
+  ],
+  "counters": {
+    "BK20260801": 1
+  }
+}
